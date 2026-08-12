@@ -117,7 +117,8 @@ function Estudos() {
         subject_id: subjectId || null,
         file_name: file.name,
         file_path: path,
-        file_type: file.type || "application/octet-stream",
+        file_size: file.size,
+        mime_type: file.type || "application/octet-stream",
         extracted_text: text,
       });
       if (error) throw error;
