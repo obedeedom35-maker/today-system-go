@@ -35,7 +35,7 @@ export const generateSummary = createServerFn({ method: "POST" })
       { role: "system", content: AI_PERSONA },
       {
         role: "user",
-        content: `${instructions[data.summaryType] ?? instructions.completo}\n\nMATERIAL (${material.file_name}):\n${text}`,
+        content: `${instructions[data.summaryType] ?? instructions["completo"]}\n\nMATERIAL (${material.file_name}):\n${text}`,
       },
     ]);
 
