@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DisciplinasRouteImport } from './routes/disciplinas'
+import { Route as ProgressoRouteImport } from './routes/progresso'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const DisciplinasRoute = DisciplinasRouteImport.update({
   path: '/disciplinas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProgressoRoute = ProgressoRouteImport.update({
+  id: '/progresso',
+  path: '/progresso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/disciplinas': typeof DisciplinasRoute
+  '/progresso': typeof ProgressoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/disciplinas': typeof DisciplinasRoute
+  '/progresso': typeof ProgressoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/disciplinas': typeof DisciplinasRoute
+  '/progresso': typeof ProgressoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/disciplinas'
+  fullPaths: '/' | '/auth' | '/disciplinas' | '/progresso'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/disciplinas'
-  id: '__root__' | '/' | '/auth' | '/disciplinas'
+  to: '/' | '/auth' | '/disciplinas' | '/progresso'
+  id: '__root__' | '/' | '/auth' | '/disciplinas' | '/progresso'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DisciplinasRoute: typeof DisciplinasRoute
+  ProgressoRoute: typeof ProgressoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DisciplinasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/progresso': {
+      id: '/progresso'
+      path: '/progresso'
+      fullPath: '/progresso'
+      preLoaderRoute: typeof ProgressoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DisciplinasRoute: DisciplinasRoute,
+  ProgressoRoute: ProgressoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
