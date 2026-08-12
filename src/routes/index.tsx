@@ -39,7 +39,7 @@ function Stat({
   icon: React.ElementType;
   label: string;
   value: string;
-  hint?: string;
+  hint?: string | undefined;
 }) {
   return (
     <div className="card-premium p-5">
