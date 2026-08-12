@@ -53,7 +53,10 @@ function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) return toast.error("E-mail ou senha inválidos.");
+    if (error) {
+      toast.error("E-mail ou senha inválidos.");
+      return;
+    }
     toast.success("Bem-vindo de volta!");
     router.navigate({ to: "/" });
   }
@@ -76,22 +79,29 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) {
-      return toast.error(
+      toast.error(
         error.message.includes("already registered")
           ? "Este e-mail já está cadastrado."
           : "Não foi possível criar sua conta.",
       );
+      return;
     }
     toast.success("Conta criada! Você já pode começar.");
     router.navigate({ to: "/" });
   }
 
   async function resetPassword() {
-    if (!email) return toast.error("Informe seu e-mail para recuperar a senha.");
+    if (!email) {
+      toast.error("Informe seu e-mail para recuperar a senha.");
+      return;
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin,
     });
-    if (error) return toast.error("Não foi possível enviar o e-mail de recuperação.");
+    if (error) {
+      toast.error("Não foi possível enviar o e-mail de recuperação.");
+      return;
+    }
     toast.success("Enviamos um link de recuperação para seu e-mail.");
   }
 
