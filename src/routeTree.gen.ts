@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DisciplinasRouteImport } from './routes/disciplinas'
+import { Route as EstudosRouteImport } from './routes/estudos'
 import { Route as NotificacoesRouteImport } from './routes/notificacoes'
 import { Route as ProgressoRouteImport } from './routes/progresso'
 
@@ -30,6 +31,11 @@ const DisciplinasRoute = DisciplinasRouteImport.update({
   path: '/disciplinas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EstudosRoute = EstudosRouteImport.update({
+  id: '/estudos',
+  path: '/estudos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotificacoesRoute = NotificacoesRouteImport.update({
   id: '/notificacoes',
   path: '/notificacoes',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/disciplinas': typeof DisciplinasRoute
+  '/estudos': typeof EstudosRoute
   '/notificacoes': typeof NotificacoesRoute
   '/progresso': typeof ProgressoRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/disciplinas': typeof DisciplinasRoute
+  '/estudos': typeof EstudosRoute
   '/notificacoes': typeof NotificacoesRoute
   '/progresso': typeof ProgressoRoute
 }
@@ -60,22 +68,32 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/disciplinas': typeof DisciplinasRoute
+  '/estudos': typeof EstudosRoute
   '/notificacoes': typeof NotificacoesRoute
   '/progresso': typeof ProgressoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/disciplinas' | '/notificacoes' | '/progresso'
+  fullPaths:
+    '/' | '/auth' | '/disciplinas' | '/estudos' | '/notificacoes' | '/progresso'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/disciplinas' | '/notificacoes' | '/progresso'
+  to:
+    '/' | '/auth' | '/disciplinas' | '/estudos' | '/notificacoes' | '/progresso'
   id:
-    '__root__' | '/' | '/auth' | '/disciplinas' | '/notificacoes' | '/progresso'
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/disciplinas'
+    | '/estudos'
+    | '/notificacoes'
+    | '/progresso'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DisciplinasRoute: typeof DisciplinasRoute
+  EstudosRoute: typeof EstudosRoute
   NotificacoesRoute: typeof NotificacoesRoute
   ProgressoRoute: typeof ProgressoRoute
 }
@@ -103,6 +121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DisciplinasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/estudos': {
+      id: '/estudos'
+      path: '/estudos'
+      fullPath: '/estudos'
+      preLoaderRoute: typeof EstudosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/notificacoes': {
       id: '/notificacoes'
       path: '/notificacoes'
@@ -124,6 +149,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DisciplinasRoute: DisciplinasRoute,
+  EstudosRoute: EstudosRoute,
   NotificacoesRoute: NotificacoesRoute,
   ProgressoRoute: ProgressoRoute,
 }
