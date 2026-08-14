@@ -2,10 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Bell, BookOpen, Sparkles, Target, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ProgressRing } from "@/components/ProgressRing";
+import { Roadmap } from "@/components/Roadmap";
+import { NextStep } from "@/components/NextStep";
+import { Reveal, Stagger, StaggerItem, CountUp, MotionBar } from "@/components/motion";
 import { useProfile, useProgressData, useNotifications } from "@/lib/data";
 import { dailyMotivation, randomMessage, welcomeBackMessages } from "@/lib/motivation";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
