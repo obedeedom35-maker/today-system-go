@@ -122,9 +122,56 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Sheet>
       </header>
 
-      <main className="px-4 py-6 lg:ml-64 lg:px-10 lg:py-10">
+      <main className="px-4 pb-24 pt-6 lg:ml-64 lg:px-10 lg:py-10 lg:pb-10">
         <div className="mx-auto max-w-6xl">{children}</div>
       </main>
+
+      <BottomNav />
     </div>
   );
 }
+
+const MOBILE_NAV = [
+  { to: "/", label: "Início", icon: LayoutDashboard },
+  { to: "/disciplinas", label: "Metas", icon: BookOpen },
+  { to: "/estudos", label: "Estudos", icon: GraduationCap },
+  { to: "/desempenho", label: "Desempenho", icon: BarChart3 },
+  { to: "/notificacoes", label: "Avisos", icon: Bell },
+] as const;
+
+function BottomNav() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const unread = useUnreadCount();
+
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:hidden">
+      <div className="flex items-stretch justify-around">
+        {MOBILE_NAV.map((item) => {
+          const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={cn(
+                "relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors",
+                active ? "text-primary" : "text-muted-foreground",
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              {item.label}
+              {item.to === "/notificacoes" && unread > 0 && (
+                <span className="absolute top-1.5 right-1/2 translate-x-4 rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                  {unread}
+                </span>
+              )}
+              {active && (
+                <span className="bg-brand absolute inset-x-6 top-0 h-0.5 rounded-full" />
+              )}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
