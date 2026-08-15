@@ -1,0 +1,10 @@
+ALTER TABLE public.study_summaries ADD COLUMN IF NOT EXISTS structured jsonb;
+ALTER TABLE public.study_summaries ADD COLUMN IF NOT EXISTS material_ids jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE public.flashcards ADD COLUMN IF NOT EXISTS status text;
+ALTER TABLE public.flashcards ADD COLUMN IF NOT EXISTS reviewed_at timestamptz;
+ALTER TABLE public.simulations ADD COLUMN IF NOT EXISTS difficulty text NOT NULL DEFAULT 'media';
+ALTER TABLE public.simulations ADD COLUMN IF NOT EXISTS time_limit_minutes integer;
+ALTER TABLE public.simulations ADD COLUMN IF NOT EXISTS material_ids jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE public.simulations ADD COLUMN IF NOT EXISTS focus_topics text;
+ALTER TABLE public.materials ADD COLUMN IF NOT EXISTS page_count integer;
+CREATE UNIQUE INDEX IF NOT EXISTS simulation_answers_question_unique ON public.simulation_answers (question_id);
