@@ -1,53 +1,56 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { AI_PERSONA, callAI, extractJson } from "./ai.server";
-
-const summarySchema = z.object({
-  materialId: z.string().uuid(),
-  summaryType: z.string(),
-});
+import {
+  AI_PERSONA,
+  GRADE_PROMPT,
+  TUTOR_PROMPT,
+  callAI,
+  extractJson,
+  joinMaterials,
+  simulationPrompt,
+  summaryPrompt,
+} from "./ai.server";
 
 export const generateSummary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => summarySchema.parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        materialIds: z.array(z.string().uuid()).min(1).max(8),
+        summaryType: z.string(),
+      })
+      .parse(data),
+  )
   .handler(async ({ data, context }) => {
-    const { data: material, error } = await context.supabase
+    const { data: materials, error } = await context.supabase
       .from("materials")
       .select("id, file_name, subject_id, extracted_text")
-      .eq("id", data.materialId)
-      .maybeSingle();
+      .in("id", data.materialIds);
+    if (error || !materials?.length) throw new Error("Materiais não encontrados.");
 
-    if (error || !material) throw new Error("Material não encontrado.");
-    const text = (material.extracted_text ?? "").slice(0, 60000);
-    if (text.trim().length < 40)
-      throw new Error("Não foi possível ler o conteúdo deste material. Envie um PDF com texto ou cole o conteúdo.");
-
-    const instructions: Record<string, string> = {
-      completo: "Faça um resumo completo e estruturado com títulos e subtópicos.",
-      rapido: "Faça um resumo rápido e direto, em tópicos curtos.",
-      revisao: "Faça um resumo focado em revisão pré-prova, com destaques.",
-      prova: "Liste os principais pontos que podem cair na prova.",
-      mapa: "Crie um mapa mental em formato de lista hierárquica indentada.",
-    };
-
-    const content = await callAI([
+    const text = joinMaterials(materials);
+    const raw = await callAI([
       { role: "system", content: AI_PERSONA },
-      {
-        role: "user",
-        content: `${instructions[data.summaryType] ?? instructions["completo"]}\n\nMATERIAL (${material.file_name}):\n${text}`,
-      },
+      { role: "user", content: summaryPrompt(data.summaryType, text) },
     ]);
+
+    const structured = extractJson<{ title?: string }>(raw);
+    const title =
+      structured.title?.trim() ||
+      `${materials[0]!.file_name} — ${data.summaryType}`;
 
     const { data: saved, error: insertError } = await context.supabase
       .from("study_summaries")
       .insert({
         user_id: context.userId,
-        material_id: material.id,
-        subject_id: material.subject_id,
-        title: `${material.file_name} — ${data.summaryType}`,
+        material_id: materials[0]!.id,
+        subject_id: materials[0]!.subject_id,
+        material_ids: materials.map((m) => m.id),
+        title,
         summary_type: data.summaryType,
-        content,
+        content: JSON.stringify(structured),
+        structured,
       })
       .select()
       .single();
@@ -58,22 +61,22 @@ export const generateSummary = createServerFn({ method: "POST" })
 
 export const generateFlashcards = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ materialId: z.string().uuid() }).parse(data))
+  .inputValidator((data: unknown) =>
+    z.object({ materialIds: z.array(z.string().uuid()).min(1).max(8) }).parse(data),
+  )
   .handler(async ({ data, context }) => {
-    const { data: material } = await context.supabase
+    const { data: materials } = await context.supabase
       .from("materials")
       .select("id, file_name, subject_id, extracted_text")
-      .eq("id", data.materialId)
-      .maybeSingle();
-    if (!material) throw new Error("Material não encontrado.");
-    const text = (material.extracted_text ?? "").slice(0, 40000);
-    if (text.trim().length < 40) throw new Error("Material sem texto legível.");
+      .in("id", data.materialIds);
+    if (!materials?.length) throw new Error("Materiais não encontrados.");
 
+    const text = joinMaterials(materials, 50000);
     const raw = await callAI([
       { role: "system", content: AI_PERSONA },
       {
         role: "user",
-        content: `Crie 10 flashcards com base no material. Responda APENAS com JSON no formato [{"question":"...","answer":"..."}].\n\nMATERIAL:\n${text}`,
+        content: `Crie 12 flashcards objetivos com base no material. Responda APENAS com JSON no formato [{"question":"...","answer":"..."}].\n\nMATERIAL:\n${text}`,
       },
     ]);
 
@@ -81,8 +84,8 @@ export const generateFlashcards = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("flashcards").insert(
       cards.map((c) => ({
         user_id: context.userId,
-        material_id: material.id,
-        subject_id: material.subject_id,
+        material_id: materials[0]!.id,
+        subject_id: materials[0]!.subject_id,
         question: c.question,
         answer: c.answer,
       })),
@@ -91,53 +94,53 @@ export const generateFlashcards = createServerFn({ method: "POST" })
     return { created: cards.length };
   });
 
-const simSchema = z.object({
-  subjectId: z.string().uuid().nullable(),
-  materialIds: z.array(z.string().uuid()).min(1),
-  questionCount: z.number().int().min(1).max(20),
-  examType: z.enum(["primeira", "segunda", "ultima"]),
-});
-
 export const generateSimulation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => simSchema.parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        subjectId: z.string().uuid().nullable(),
+        materialIds: z.array(z.string().uuid()).min(1).max(8),
+        questionCount: z.number().int().min(1).max(20),
+        examType: z.enum(["primeira", "segunda", "ultima"]),
+        difficulty: z.enum(["facil", "media", "dificil"]).default("media"),
+        focusTopics: z.string().nullable().default(null),
+        timeLimitMinutes: z.number().int().min(0).max(300).nullable().default(null),
+        title: z.string().optional(),
+      })
+      .parse(data),
+  )
   .handler(async ({ data, context }) => {
     const { data: materials } = await context.supabase
       .from("materials")
-      .select("file_name, extracted_text")
+      .select("id, file_name, subject_id, extracted_text")
       .in("id", data.materialIds);
+    if (!materials?.length) throw new Error("Materiais não encontrados.");
 
-    const text = (materials ?? [])
-      .map((m) => `### ${m.file_name}\n${m.extracted_text ?? ""}`)
-      .join("\n\n")
-      .slice(0, 60000);
-    if (text.trim().length < 40) throw new Error("Os materiais selecionados não possuem texto legível.");
-
-    const models: Record<string, string> = {
-      primeira: `${data.questionCount} questões DISCURSIVAS`,
-      segunda: `metade discursivas e metade objetivas (total ${data.questionCount})`,
-      ultima: `${data.questionCount} questões OBJETIVAS com alternativas A, B, C, D e E`,
-    };
-
+    const text = joinMaterials(materials, 70000);
     const raw = await callAI([
       { role: "system", content: AI_PERSONA },
       {
         role: "user",
-        content:
-          `Gere um simulado com ${models[data.examType]}, dificuldade compatível com graduação em Odontologia, ` +
-          `baseado apenas no material abaixo. Responda APENAS com JSON: ` +
-          `[{"question_type":"discursiva"|"objetiva","statement":"...","options":["A) ...","B) ...","C) ...","D) ...","E) ..."]|null,"correct_answer":"...","topic":"..."}]\n\nMATERIAL:\n${text}`,
+        content: simulationPrompt({
+          count: data.questionCount,
+          examType: data.examType,
+          difficulty: data.difficulty,
+          focus: data.focusTopics,
+          text,
+        }),
       },
     ]);
 
-    type Q = {
-      question_type: string;
-      statement: string;
-      options: string[] | null;
-      correct_answer: string;
-      topic?: string;
-    };
-    const questions = extractJson<Q[]>(raw).slice(0, data.questionCount);
+    const questions = extractJson<
+      {
+        question_type: string;
+        statement: string;
+        options: string[] | null;
+        correct_answer: string;
+        topic?: string;
+      }[]
+    >(raw).slice(0, data.questionCount);
     if (!questions.length) throw new Error("A IA não conseguiu gerar questões deste material.");
 
     const { data: simulation, error } = await context.supabase
@@ -145,8 +148,12 @@ export const generateSimulation = createServerFn({ method: "POST" })
       .insert({
         user_id: context.userId,
         subject_id: data.subjectId,
-        title: `Simulado ${new Date().toLocaleDateString("pt-BR")}`,
+        title: data.title ?? `Simulado ${new Date().toLocaleDateString("pt-BR")}`,
         exam_type: data.examType,
+        difficulty: data.difficulty,
+        focus_topics: data.focusTopics,
+        time_limit_minutes: data.timeLimitMinutes,
+        material_ids: data.materialIds,
         question_count: questions.length,
       })
       .select()
@@ -169,15 +176,17 @@ export const generateSimulation = createServerFn({ method: "POST" })
     return simulation;
   });
 
-const gradeSchema = z.object({
-  simulationId: z.string().uuid(),
-  durationSeconds: z.number().int().min(0),
-  answers: z.array(z.object({ questionId: z.string().uuid(), answer: z.string() })),
-});
-
 export const gradeSimulation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => gradeSchema.parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        simulationId: z.string().uuid(),
+        durationSeconds: z.number().int().min(0),
+        answers: z.array(z.object({ questionId: z.string().uuid(), answer: z.string() })),
+      })
+      .parse(data),
+  )
   .handler(async ({ data, context }) => {
     const { data: questions } = await context.supabase
       .from("simulation_questions")
@@ -197,18 +206,12 @@ export const gradeSimulation = createServerFn({ method: "POST" })
 
     const raw = await callAI([
       { role: "system", content: AI_PERSONA },
-      {
-        role: "user",
-        content:
-          "Corrija as respostas do aluno. Nas discursivas considere conceitos, raciocínio, palavras-chave e significado, " +
-          "sem exigir reprodução literal. Explique didaticamente por que a correta está correta e, nas objetivas, por que as demais estão erradas. " +
-          'Responda APENAS com JSON: [{"id":"...","is_correct":true,"score":1,"explanation":"...","review_topic":"..."}].\n\n' +
-          JSON.stringify(payload),
-      },
+      { role: "user", content: GRADE_PROMPT + JSON.stringify(payload) },
     ]);
 
-    type G = { id: string; is_correct: boolean; score?: number; explanation: string; review_topic?: string };
-    const grades = extractJson<G[]>(raw);
+    const grades = extractJson<
+      { id: string; is_correct: boolean; score?: number; explanation: string; review_topic?: string }[]
+    >(raw);
 
     const rows = questions.map((q) => {
       const g = grades.find((x) => x.id === q.id);
@@ -226,8 +229,9 @@ export const gradeSimulation = createServerFn({ method: "POST" })
 
     await context.supabase.from("simulation_answers").upsert(rows, { onConflict: "question_id" });
 
+    const total = rows.reduce((a, r) => a + Number(r.score ?? 0), 0);
     const correct = rows.filter((r) => r.is_correct).length;
-    const score = (correct / rows.length) * 10;
+    const score = (total / rows.length) * 10;
 
     await context.supabase
       .from("simulations")
@@ -241,5 +245,39 @@ export const gradeSimulation = createServerFn({ method: "POST" })
       })
       .eq("id", data.simulationId);
 
-    return { correct, total: rows.length, score };
+    return { score, correct, total: rows.length };
+  });
+
+export const askMaterials = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        materialIds: z.array(z.string().uuid()).max(8),
+        question: z.string().min(2).max(2000),
+        history: z
+          .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() }))
+          .max(12)
+          .default([]),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    let contextText = "";
+    if (data.materialIds.length) {
+      const { data: materials } = await context.supabase
+        .from("materials")
+        .select("id, file_name, subject_id, extracted_text")
+        .in("id", data.materialIds);
+      if (materials?.length) contextText = joinMaterials(materials, 60000);
+    }
+
+    const answer = await callAI([
+      { role: "system", content: `${AI_PERSONA}\n${TUTOR_PROMPT}` },
+      ...(contextText ? [{ role: "user", content: `MATERIAIS DO ALUNO:\n${contextText}` }] : []),
+      ...data.history,
+      { role: "user", content: data.question },
+    ]);
+
+    return { answer };
   });

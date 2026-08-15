@@ -48,6 +48,8 @@ export type Database = {
           id: string
           material_id: string | null
           question: string
+          reviewed_at: string | null
+          status: string | null
           subject_id: string | null
           user_id: string
         }
@@ -57,6 +59,8 @@ export type Database = {
           id?: string
           material_id?: string | null
           question: string
+          reviewed_at?: string | null
+          status?: string | null
           subject_id?: string | null
           user_id: string
         }
@@ -66,6 +70,8 @@ export type Database = {
           id?: string
           material_id?: string | null
           question?: string
+          reviewed_at?: string | null
+          status?: string | null
           subject_id?: string | null
           user_id?: string
         }
@@ -139,6 +145,7 @@ export type Database = {
           file_size: number
           id: string
           mime_type: string | null
+          page_count: number | null
           subject_id: string | null
           user_id: string
         }
@@ -150,6 +157,7 @@ export type Database = {
           file_size?: number
           id?: string
           mime_type?: string | null
+          page_count?: number | null
           subject_id?: string | null
           user_id: string
         }
@@ -161,6 +169,7 @@ export type Database = {
           file_size?: number
           id?: string
           mime_type?: string | null
+          page_count?: number | null
           subject_id?: string | null
           user_id?: string
         }
@@ -438,14 +447,18 @@ export type Database = {
         Row: {
           correct_count: number
           created_at: string
+          difficulty: string
           duration_seconds: number | null
           exam_type: string
           finished_at: string | null
+          focus_topics: string | null
           id: string
+          material_ids: Json
           question_count: number
           score: number | null
           status: string
           subject_id: string | null
+          time_limit_minutes: number | null
           title: string
           user_id: string
           wrong_count: number
@@ -453,14 +466,18 @@ export type Database = {
         Insert: {
           correct_count?: number
           created_at?: string
+          difficulty?: string
           duration_seconds?: number | null
           exam_type?: string
           finished_at?: string | null
+          focus_topics?: string | null
           id?: string
+          material_ids?: Json
           question_count?: number
           score?: number | null
           status?: string
           subject_id?: string | null
+          time_limit_minutes?: number | null
           title: string
           user_id: string
           wrong_count?: number
@@ -468,14 +485,18 @@ export type Database = {
         Update: {
           correct_count?: number
           created_at?: string
+          difficulty?: string
           duration_seconds?: number | null
           exam_type?: string
           finished_at?: string | null
+          focus_topics?: string | null
           id?: string
+          material_ids?: Json
           question_count?: number
           score?: number | null
           status?: string
           subject_id?: string | null
+          time_limit_minutes?: number | null
           title?: string
           user_id?: string
           wrong_count?: number
@@ -496,6 +517,8 @@ export type Database = {
           created_at: string
           id: string
           material_id: string | null
+          material_ids: Json
+          structured: Json | null
           subject_id: string | null
           summary_type: string
           title: string
@@ -506,6 +529,8 @@ export type Database = {
           created_at?: string
           id?: string
           material_id?: string | null
+          material_ids?: Json
+          structured?: Json | null
           subject_id?: string | null
           summary_type?: string
           title: string
@@ -516,6 +541,8 @@ export type Database = {
           created_at?: string
           id?: string
           material_id?: string | null
+          material_ids?: Json
+          structured?: Json | null
           subject_id?: string | null
           summary_type?: string
           title?: string
