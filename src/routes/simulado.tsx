@@ -32,29 +32,28 @@ type Phase = 'builder' | 'generating' | 'exam' | 'grading' | 'results'
 
 interface Material {
   id: string
-  title: string
-  subject_id: string
-  type: string
+  file_name: string
+  subject_id: string | null
 }
 
 interface Question {
   id: string
   simulation_id: string
-  question_type: 'objetiva' | 'discursiva'
-  question_text: string
+  question_type: string
+  statement: string
   options: any
   correct_answer: string
-  explanation: string
+  topic: string | null
   position: number
 }
 
 interface AnswerRecord {
   id: string
   question_id: string
-  student_answer: string
-  is_correct: boolean
-  ai_feedback: string
-  points_awarded: number
+  answer: string | null
+  is_correct: boolean | null
+  explanation: string | null
+  score: number | null
 }
 
 function SimuladoPage() {
@@ -109,7 +108,7 @@ function SimuladoPage() {
       }
       const { data, error } = await query
       if (error) throw error
-      return data as Material[]
+      return data as unknown as Material[]
     },
     enabled: !!session?.user.id && !!subjectId,
   })
@@ -123,7 +122,7 @@ function SimuladoPage() {
         .eq('simulation_id', simulationId)
         .order('position')
       if (error) throw error
-      return data as Question[]
+      return data as unknown as Question[]
     },
     enabled: !!simulationId && (phase === 'exam' || phase === 'results' || phase === 'grading'),
   })
@@ -136,7 +135,7 @@ function SimuladoPage() {
         .select('*')
         .eq('simulation_id', simulationId)
       if (error) throw error
-      return data as AnswerRecord[]
+      return data as unknown as AnswerRecord[]
     },
     enabled: !!simulationId && phase === 'results',
   })
@@ -215,7 +214,7 @@ function SimuladoPage() {
     }, 1500)
 
     try {
-      const res = await generate({
+      const res = await generate({ data: {
         subjectId: subjectId || null,
         materialIds,
         pdfTexts: pdfFiles.map(f => f.text),
@@ -225,7 +224,7 @@ function SimuladoPage() {
         focusTopics: focusTopics || null,
         timeLimitMinutes: timeLimitEnabled ? timeLimitMinutes : null,
         title: `Simulado - ${subjects?.find(s => s.id === subjectId)?.name || 'Geral'}`
-      })
+      } })
       
       clearInterval(interval)
       setGenerationStep(4)
@@ -275,11 +274,11 @@ function SimuladoPage() {
         answer: answers[q.id] || ''
       }))
 
-      const res = await grade({
+      const res = await grade({ data: {
         simulationId,
         durationSeconds,
-        answers: formattedAnswers
-      })
+        answers: formattedAnswers,
+      } })
 
       setScoreData(res)
       setPhase('results')
@@ -359,7 +358,7 @@ function SimuladoPage() {
                                   checked={materialIds.includes(m.id)}
                                   onCheckedChange={() => toggleMaterial(m.id)}
                                 />
-                                <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{m.title}</span>
+                                <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{m.file_name}</span>
                               </label>
                             ))}
                           </div>
@@ -459,7 +458,7 @@ function SimuladoPage() {
                         </div>
                         <Slider 
                           value={[questionCount]} 
-                          onValueChange={(v) => setQuestionCount(v[0])} 
+                          onValueChange={(v) => setQuestionCount(v[0] ?? 10)} 
                           min={5} max={20} step={1} 
                         />
                       </div>
@@ -650,8 +649,8 @@ function SimuladoPage() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    className={cn(flagged[questions[currentQuestionIdx].id] && "bg-orange-500/10 text-orange-500 border-orange-500/20")}
-                    onClick={() => handleToggleFlag(questions[currentQuestionIdx].id)}
+                    className={cn(flagged[questions[currentQuestionIdx]!.id] && "bg-orange-500/10 text-orange-500 border-orange-500/20")}
+                    onClick={() => handleToggleFlag(questions[currentQuestionIdx]!.id)}
                   >
                     <Flag className="w-4 h-4 mr-2" />
                     <span className="hidden sm:inline">Revisar</span>
@@ -672,20 +671,20 @@ function SimuladoPage() {
                   >
                     <div className="prose prose-sm md:prose-base max-w-none dark:prose-invert">
                       <p className="text-lg leading-relaxed whitespace-pre-wrap">
-                        {questions[currentQuestionIdx].question_text}
+                        {questions[currentQuestionIdx]!.statement}
                       </p>
                     </div>
 
-                    {questions[currentQuestionIdx].question_type === 'objetiva' ? (
+                    {questions[currentQuestionIdx]!.question_type === 'objetiva' ? (
                       <div className="space-y-3">
-                        {Array.isArray(questions[currentQuestionIdx].options) && 
-                          questions[currentQuestionIdx].options.map((opt: any, i: number) => {
+                        {Array.isArray(questions[currentQuestionIdx]!.options) && 
+                          questions[currentQuestionIdx]!.options.map((opt: any, i: number) => {
                             const letter = String.fromCharCode(65 + i)
-                            const isSelected = answers[questions[currentQuestionIdx].id] === letter
+                            const isSelected = answers[questions[currentQuestionIdx]!.id] === letter
                             return (
                               <button
                                 key={i}
-                                onClick={() => handleAnswer(questions[currentQuestionIdx].id, letter)}
+                                onClick={() => handleAnswer(questions[currentQuestionIdx]!.id, letter)}
                                 className={cn(
                                   "w-full flex items-start p-4 rounded-xl border-2 text-left transition-all min-h-[56px]",
                                   isSelected 
@@ -708,8 +707,8 @@ function SimuladoPage() {
                       <div className="space-y-4">
                         <Label>Sua resposta discursiva:</Label>
                         <Textarea 
-                          value={answers[questions[currentQuestionIdx].id] || ''}
-                          onChange={(e) => handleAnswer(questions[currentQuestionIdx].id, e.target.value)}
+                          value={answers[questions[currentQuestionIdx]!.id] || ''}
+                          onChange={(e) => handleAnswer(questions[currentQuestionIdx]!.id, e.target.value)}
                           placeholder="Digite sua resposta aqui..."
                           className="min-h-[200px] resize-y text-base p-4"
                         />
@@ -864,7 +863,7 @@ function SimuladoPage() {
                           <div className="space-y-4 flex-1">
                             <div>
                               <p className="text-sm text-muted-foreground font-medium mb-1">Questão {idx + 1}</p>
-                              <p className="text-base font-medium">{q.question_text}</p>
+                              <p className="text-base font-medium">{q.statement}</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -872,11 +871,11 @@ function SimuladoPage() {
                                 <p className="text-xs text-muted-foreground mb-2 uppercase font-semibold">Sua Resposta</p>
                                 {q.question_type === 'objetiva' ? (
                                   <p className="font-medium">
-                                    <span className="font-bold mr-2">{ansRecord?.student_answer})</span>
-                                    {q.options[ansRecord?.student_answer?.charCodeAt(0) - 65] || 'Não respondida'}
+                                    <span className="font-bold mr-2">{ansRecord?.answer})</span>
+                                    {q.options[(ansRecord?.answer?.charCodeAt(0) ?? 0) - 65] || 'Não respondida'}
                                   </p>
                                 ) : (
-                                  <p className="text-sm italic">{ansRecord?.student_answer || 'Não respondida'}</p>
+                                  <p className="text-sm italic">{ansRecord?.answer || 'Não respondida'}</p>
                                 )}
                               </div>
                               
@@ -893,12 +892,12 @@ function SimuladoPage() {
                               </div>
                             </div>
 
-                            {ansRecord?.ai_feedback && (
+                            {ansRecord?.explanation && (
                               <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex gap-3">
                                 <BrainCircuit className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                                 <div>
                                   <p className="text-xs text-primary font-semibold uppercase mb-1">Feedback da IA</p>
-                                  <p className="text-sm text-muted-foreground">{ansRecord.ai_feedback}</p>
+                                  <p className="text-sm text-muted-foreground">{ansRecord.explanation}</p>
                                 </div>
                               </div>
                             )}
