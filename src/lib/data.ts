@@ -155,7 +155,7 @@ export function useProgressSnapshots() {
 }
 
 export async function saveProgressSnapshot(userId: string, percent: number) {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().slice(0, 10);
   const { data: existing, error: fetchError } = await supabase
     .from("progress_snapshots")
     .select("id")
