@@ -100,7 +100,8 @@ export const generateSimulation = createServerFn({ method: "POST" })
     z
       .object({
         subjectId: z.string().uuid().nullable(),
-        materialIds: z.array(z.string().uuid()).min(1).max(8),
+        materialIds: z.array(z.string().uuid()).max(8).default([]),
+        pdfTexts: z.array(z.string().max(40000)).max(5).default([]),
         questionCount: z.number().int().min(1).max(20),
         examType: z.enum(["primeira", "segunda", "ultima"]),
         difficulty: z.enum(["facil", "media", "dificil"]).default("media"),
@@ -108,16 +109,32 @@ export const generateSimulation = createServerFn({ method: "POST" })
         timeLimitMinutes: z.number().int().min(0).max(300).nullable().default(null),
         title: z.string().optional(),
       })
+      .refine((d) => d.materialIds.length > 0 || d.pdfTexts.length > 0, {
+        message: "Selecione ao menos um material ou faça upload de um PDF.",
+      })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
-    const { data: materials } = await context.supabase
-      .from("materials")
-      .select("id, file_name, subject_id, extracted_text")
-      .in("id", data.materialIds);
-    if (!materials?.length) throw new Error("Materiais não encontrados.");
+    let text = "";
 
-    const text = joinMaterials(materials, 70000);
+    // Textos de materiais salvos no banco
+    if (data.materialIds.length > 0) {
+      const { data: materials } = await context.supabase
+        .from("materials")
+        .select("id, file_name, subject_id, extracted_text")
+        .in("id", data.materialIds);
+      if (materials?.length) {
+        text += joinMaterials(materials, 35000);
+      }
+    }
+
+    // Textos de PDFs enviados diretamente
+    if (data.pdfTexts.length > 0) {
+      const pdfContent = data.pdfTexts.join("\n\n---\n\n").slice(0, 35000);
+      text += (text ? "\n\n" : "") + pdfContent;
+    }
+
+    if (!text.trim()) throw new Error("Nenhum conteúdo encontrado para gerar questões.");
     const raw = await callAI([
       { role: "system", content: AI_PERSONA },
       {

@@ -1,11 +1,14 @@
+import React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Bell, BookOpen, Sparkles, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, Bell, BookOpen, Sparkles, Target, TrendingUp, Award, CheckCircle2, Activity } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { AppShell } from "@/components/AppShell";
-import { ProgressRing } from "@/components/ProgressRing";
+import { HeroBanner } from "@/components/HeroBanner";
+import { ProgressBanners } from "@/components/ProgressBanners";
 import { Roadmap } from "@/components/Roadmap";
 import { NextStep } from "@/components/NextStep";
 import { Reveal, Stagger, StaggerItem, CountUp, MotionBar } from "@/components/motion";
-import { useProfile, useProgressData, useNotifications } from "@/lib/data";
+import { useProfile, useProgressData, useNotifications, useProgressSnapshots } from "@/lib/data";
 import { dailyMotivation, randomMessage, welcomeBackMessages } from "@/lib/motivation";
 import { Button } from "@/components/ui/button";
 
@@ -72,6 +75,7 @@ function Dashboard() {
   const periodNumber = profile.data?.period_number ?? 6;
   const progress = useProgressData(periodNumber);
   const notifications = useNotifications();
+  const snapshots = useProgressSnapshots();
 
   const subjects = progress.data?.subjects ?? [];
   const overall = progress.data?.overall ?? 0;
@@ -80,41 +84,210 @@ function Dashboard() {
   const procedures = subjects.reduce((a, s) => a + s.totalDone, 0);
   const firstName = (profile.data?.full_name ?? "").split(" ")[0] || "estudante";
 
+  const historyData = snapshots.data?.map(s => ({
+    date: new Date(s.snapshot_date).toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' }),
+    progresso: s.percent
+  })) || [];
+
+  const chartData = historyData.length > 0 ? historyData : [
+    { date: "1 Ago", progresso: 10 },
+    { date: "8 Ago", progresso: 25 },
+    { date: "15 Ago", progresso: 45 },
+    { date: "Hoje", progresso: overall },
+  ];
+
+  const recentAchievements = notifications.data?.filter(n => n.kind === "sucesso").slice(0, 3) || [];
+
   return (
     <div className="space-y-8">
       <Reveal>
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground">{randomMessage(welcomeBackMessages)}</p>
-            <h1 className="font-display text-3xl font-extrabold">Olá, {firstName} 👋</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {periodNumber}º Período · {profile.data?.course ?? "Odontologia"}
-            </p>
-          </div>
-          <Button asChild className="gap-2">
-            <Link to="/disciplinas">
-              Registrar procedimento <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </header>
+        <HeroBanner
+          name={firstName}
+          period={periodNumber}
+          course={profile.data?.course ?? "Odontologia"}
+          percent={overall}
+          message={randomMessage(welcomeBackMessages)}
+        />
       </Reveal>
 
       <Reveal delay={0.05}>
-        <section className="card-premium flex flex-col items-center gap-8 p-8 md:flex-row">
-          <ProgressRing percent={overall} label="do período" size={148} />
-          <div className="flex-1 space-y-3">
-            <h2 className="font-display text-xl font-bold">Minha jornada</h2>
-            <p className="text-sm text-muted-foreground">{dailyMotivation(overall)}</p>
-            <MotionBar percent={overall} />
+        <ProgressBanners
+          items={[
+            {
+              label: "Visão Geral",
+              icon: Target,
+              percent: overall,
+              detail: "Progresso do período",
+              to: "/disciplinas",
+            },
+            {
+              label: "Metas",
+              icon: CheckCircle2,
+              percent: totalGoals > 0 ? Math.round((done / totalGoals) * 100) : 0,
+              detail: `${done} de ${totalGoals} concluídas`,
+              to: "/disciplinas",
+            },
+            {
+              label: "Clínica",
+              icon: TrendingUp,
+              percent: Math.min(100, procedures * 5),
+              detail: `${procedures} procedimentos feitos`,
+              to: "/disciplinas",
+            },
+          ]}
+        />
+      </Reveal>
+
+      <Reveal delay={0.15}>
+        {/* Gráfico de Evolução - Full width, premium */}
+        <div className="card-premium p-6 relative overflow-hidden">
+          {/* Background decoration blobs */}
+          <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-primary/8 blur-3xl pointer-events-none" />
+          <div className="absolute -left-8 bottom-0 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
+
+          {/* Header */}
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-6 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Activity className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="font-display text-lg font-bold">Evolução do Progresso</h2>
+                <p className="text-xs text-muted-foreground">Histórico de progresso do período</p>
+              </div>
+            </div>
+
+            {/* Stats chips */}
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="font-display text-3xl font-extrabold text-primary leading-none">
+                  {overall.toFixed(1)}%
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">progresso atual</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Mini stat pills */}
+          <div className="flex flex-wrap gap-2 mb-4 relative z-10">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1 text-xs font-semibold">
+              <CheckCircle2 className="h-3 w-3" /> {done}/{totalGoals} metas
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1 text-xs font-semibold">
+              <TrendingUp className="h-3 w-3" /> {procedures} procedimentos
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
+              <BookOpen className="h-3 w-3" /> {subjects.length} disciplinas
+            </span>
+          </div>
+
+          {/* Chart */}
+          <div className="relative z-10 h-[220px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
+                <defs>
+                  <linearGradient id="gradProgresso" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                  strokeOpacity={0.5}
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="date"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <YAxis
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) => `${v}%`}
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  domain={[0, 100]}
+                  width={38}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    borderRadius: '12px',
+                    border: '1px solid hsl(var(--border))',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                    padding: '10px 14px',
+                  }}
+                  itemStyle={{ color: 'hsl(var(--primary))', fontWeight: 700 }}
+                  labelStyle={{ color: 'hsl(var(--foreground))', fontSize: '12px', marginBottom: '4px' }}
+                  formatter={(value: number) => [`${value.toFixed(1)}%`, 'Progresso']}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="progresso"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#gradProgresso)"
+                  dot={{ fill: 'hsl(var(--primary))', r: 3, strokeWidth: 0 }}
+                  activeDot={{ r: 6, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </Reveal>
+
+      <Reveal delay={0.2}>
+        <section className="grid gap-4 md:grid-cols-2">
+          {/* Conquistas Recentes */}
+          <div className="card-premium p-6 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-lg font-bold">Conquistas Recentes</h2>
+              <Award className="h-5 w-5 text-primary" />
+            </div>
+            
+            {recentAchievements.length > 0 ? (
+              <div className="space-y-4 flex-1">
+                {recentAchievements.map(a => (
+                  <div key={a.id} className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/15 text-success">
+                      <CheckCircle2 className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{a.title}</p>
+                      <p className="text-xs text-muted-foreground">{a.message}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-muted-foreground mb-3">
+                  <Award className="h-6 w-6" />
+                </div>
+                <p className="text-sm font-medium">Nenhuma conquista ainda</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Complete metas para ganhar conquistas.
+                </p>
+              </div>
+            )}
+            
+            <Button variant="ghost" className="w-full mt-4 text-xs" asChild>
+              <Link to="/disciplinas">Ver todas as metas</Link>
+            </Button>
           </div>
         </section>
       </Reveal>
 
-      <Reveal delay={0.08}>
+      <Reveal delay={0.2}>
         <Roadmap percent={overall} />
       </Reveal>
 
-      <Reveal delay={0.1}>
+      <Reveal delay={0.25}>
         <NextStep subjects={subjects} />
       </Reveal>
 

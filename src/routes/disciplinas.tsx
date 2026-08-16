@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { GoalCard, GoalFormDialog, RegisterProcedureDialog } from "@/components/goals";
+import { SubjectFormDialog } from "@/components/SubjectFormDialog";
 import { useProfile, useProgressData } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -79,8 +80,12 @@ function Disciplinas() {
       {progress.isLoading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
       ) : subjects.length === 0 ? (
-        <div className="card-premium p-8 text-center text-sm text-muted-foreground">
-          Ainda não há disciplinas cadastradas para o {periodNumber}º período.
+        <div className="card-premium flex flex-col items-center justify-center p-8 text-center text-sm text-muted-foreground space-y-4">
+          <p>Ainda não há disciplinas cadastradas para o {periodNumber}º período.</p>
+          <SubjectFormDialog
+            periodNumber={periodNumber}
+            trigger={<Button variant="outline" className="gap-2"><Plus className="h-4 w-4" /> Cadastrar primeira disciplina</Button>}
+          />
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
@@ -103,6 +108,14 @@ function Disciplinas() {
                 </button>
               );
             })}
+            <SubjectFormDialog
+              periodNumber={periodNumber}
+              trigger={
+                <Button variant="outline" className="w-full mt-2 gap-2">
+                  <Plus className="h-4 w-4" /> Adicionar disciplina
+                </Button>
+              }
+            />
           </aside>
 
           {current && (

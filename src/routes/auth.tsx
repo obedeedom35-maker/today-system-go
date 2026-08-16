@@ -109,9 +109,7 @@ function AuthPage() {
     <div className="grid min-h-screen bg-surface lg:grid-cols-2">
       <section className="bg-brand relative hidden flex-col justify-between p-12 text-primary-foreground lg:flex">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-lg font-bold">
-            OP
-          </div>
+          <img src="/brand_logo.jpg" alt="Odonto Progress" className="h-12 w-auto" />
           <span className="font-display text-lg font-bold">ODONTO PROGRESS</span>
         </div>
         <div className="space-y-6">

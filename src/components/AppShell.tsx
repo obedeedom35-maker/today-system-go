@@ -9,6 +9,9 @@ import {
   Bell,
   LogOut,
   Menu,
+  Sparkles,
+  Target,
+  Clock,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -17,20 +20,20 @@ import { cn } from "@/lib/utils";
 import { useUnreadCount } from "@/lib/data";
 
 const NAV = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/disciplinas", label: "Disciplinas", icon: BookOpen },
   { to: "/progresso", label: "Meu Progresso", icon: TrendingUp },
   { to: "/estudos", label: "Meus Estudos", icon: GraduationCap },
   { to: "/desempenho", label: "Meu Desempenho", icon: BarChart3 },
+  { to: "/ia", label: "Tutor IA", icon: Sparkles },
+  { to: "/simulado", label: "Simulados", icon: Target },
+  { to: "/pomodoro", label: "Timer", icon: Clock },
   { to: "/notificacoes", label: "Notificações", icon: Bell },
 ] as const;
 
 function Brand() {
   return (
     <Link to="/" className="flex items-center gap-3">
-      <div className="bg-brand flex h-10 w-10 items-center justify-center rounded-xl text-lg font-bold text-primary-foreground shadow-[var(--shadow-glow)]">
-        OP
-      </div>
+      <img src="/brand_logo.jpg" alt="Odonto Progress" className="h-12 w-auto" />
       <div className="leading-tight">
         <p className="font-display text-base font-bold">Odonto Progress</p>
         <p className="text-xs text-muted-foreground">Seu progresso, em um só lugar</p>
@@ -136,6 +139,9 @@ const MOBILE_NAV = [
   { to: "/disciplinas", label: "Metas", icon: BookOpen },
   { to: "/estudos", label: "Estudos", icon: GraduationCap },
   { to: "/desempenho", label: "Desempenho", icon: BarChart3 },
+  { to: "/ia", label: "Tutor IA", icon: Sparkles },
+  { to: "/simulado", label: "Simulados", icon: Target },
+  { to: "/pomodoro", label: "Timer", icon: Clock },
   { to: "/notificacoes", label: "Avisos", icon: Bell },
 ] as const;
 

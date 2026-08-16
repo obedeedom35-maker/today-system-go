@@ -136,3 +136,39 @@ export async function notify(
 ) {
   await supabase.from("notifications").insert({ user_id: userId, title, message, kind });
 }
+
+export function useProgressSnapshots() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["progress_snapshots", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("progress_snapshots")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("snapshot_date", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export async function saveProgressSnapshot(userId: string, percent: number) {
+  const today = new Date().toISOString().split("T")[0];
+  const { data: existing, error: fetchError } = await supabase
+    .from("progress_snapshots")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("snapshot_date", today)
+    .maybeSingle();
+
+  if (fetchError) throw fetchError;
+
+  if (!existing) {
+    const { error: insertError } = await supabase
+      .from("progress_snapshots")
+      .insert({ user_id: userId, snapshot_date: today, percent });
+    if (insertError) throw insertError;
+  }
+}
