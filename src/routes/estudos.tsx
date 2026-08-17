@@ -81,7 +81,7 @@ function Estudos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("materials")
-        .select("id, file_name, subject_id, created_at")
+        .select("id, file_name, subject_id, created_at, file_path")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
