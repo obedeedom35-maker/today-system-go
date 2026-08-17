@@ -121,7 +121,7 @@ function Estudos() {
     let uploadedCount = 0;
     try {
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+        const file = files[i]!;
         const text = await extractTextFromFile(file);
         const path = `${user.id}/${Date.now()}-${file.name}`;
         const { error: upErr } = await supabase.storage.from("materials").upload(path, file);

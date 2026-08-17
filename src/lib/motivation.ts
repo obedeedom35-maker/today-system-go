@@ -1,6 +1,6 @@
 import type { GoalProgress } from "./progress";
 
-function pick(list: string[], seed = Date.now()) {
+function pick(list: string[], seed = Date.now()): string {
   return list[Math.floor((seed / 1000 + Math.random() * list.length) % list.length)];
 }
 

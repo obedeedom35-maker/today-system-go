@@ -103,9 +103,11 @@ function TutorIARoute() {
     try {
       // Assuming askMaterials is imported and ready to use
       const response = await askMaterials({
-        materialIds: selectedMaterials,
-        question: text,
-        history: history.map(h => ({ role: h.role, content: h.content })),
+        data: {
+          materialIds: selectedMaterials,
+          question: text,
+          history: history.map((h) => ({ role: h.role, content: h.content })),
+        },
       });
 
       setHistory(prev => [...prev, { role: 'assistant', content: response.answer }]);
@@ -363,7 +365,7 @@ function TutorIARoute() {
             <div className="p-4 border-t bg-card">
               
               {/* Quick suggestions if there's history */}
-              {history.length > 0 && history[history.length - 1].role === 'assistant' && !isAsking && (
+              {history.length > 0 && history[history.length - 1]!.role === 'assistant' && !isAsking && (
                 <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide">
                   <Button variant="secondary" size="sm" onClick={() => handleAsk("Simplificar essa explicação")} className="whitespace-nowrap rounded-full text-xs h-7">
                     <Lightbulb size={12} className="mr-1" /> Simplificar
