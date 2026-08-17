@@ -49,7 +49,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <nav className="flex flex-col gap-1">
       {NAV.map((item) => {
-        const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+        const active = pathname === item.to || pathname.startsWith(`${item.to}/`);
         return (
           <Link
             key={item.to}
@@ -153,7 +153,7 @@ function BottomNav() {
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:hidden">
       <div className="flex items-stretch justify-around">
         {MOBILE_NAV.map((item) => {
-          const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+          const active = pathname === item.to || pathname.startsWith(`${item.to}/`);
           return (
             <Link
               key={item.to}

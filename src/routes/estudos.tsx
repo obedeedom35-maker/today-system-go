@@ -81,7 +81,7 @@ function Estudos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("materials")
-        .select("id, file_name, subject_id, created_at")
+        .select("id, file_name, subject_id, created_at, file_path")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -121,7 +121,7 @@ function Estudos() {
     let uploadedCount = 0;
     try {
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+        const file = files[i]!;
         const text = await extractTextFromFile(file);
         const path = `${user.id}/${Date.now()}-${file.name}`;
         const { error: upErr } = await supabase.storage.from("materials").upload(path, file);

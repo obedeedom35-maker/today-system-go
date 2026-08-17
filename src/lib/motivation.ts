@@ -1,7 +1,7 @@
 import type { GoalProgress } from "./progress";
 
-function pick(list: string[], seed = Date.now()) {
-  return list[Math.floor((seed / 1000 + Math.random() * list.length) % list.length)];
+function pick(list: string[], seed = Date.now()): string {
+  return list[Math.floor((seed / 1000 + Math.random() * list.length) % list.length)] ?? list[0] ?? "";
 }
 
 export function periodMessage(percent: number) {
