@@ -33,10 +33,12 @@ const NAV = [
 function Brand() {
   return (
     <Link to="/" className="flex items-center gap-3">
-      <img src="/brand_logo.jpg" alt="Odonto Progress" className="h-12 w-auto" />
+      <img src="/brand_logo.png" alt="Odonto Progress" className="h-12 w-auto" />
       <div className="leading-tight">
         <p className="font-display text-base font-bold">Odonto Progress</p>
-        <p className="text-xs text-muted-foreground">Seu progresso, em um só lugar</p>
+        <p className="text-[10px] font-bold tracking-wide text-primary uppercase">
+          Criado pelo aluno OBEDE-EDOM
+        </p>
       </div>
     </Link>
   );
@@ -101,9 +103,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Brand />
           <NavLinks />
         </div>
-        <Button variant="ghost" className="justify-start gap-3" onClick={() => signOut()}>
-          <LogOut className="h-4 w-4" /> Sair
-        </Button>
+        <div className="space-y-3">
+          <div className="rounded-xl border border-border bg-card px-3 py-2 text-center">
+            <p className="text-[10px] tracking-widest text-muted-foreground uppercase">Sistema</p>
+            <p className="font-display text-xs font-extrabold tracking-wide text-primary uppercase">
+              Criado pelo aluno
+              <br />
+              OBEDE-EDOM
+            </p>
+          </div>
+          <Button variant="ghost" className="w-full justify-start gap-3" onClick={() => signOut()}>
+            <LogOut className="h-4 w-4" /> Sair
+          </Button>
+        </div>
       </aside>
 
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-card/80 px-4 py-3 backdrop-blur lg:hidden">

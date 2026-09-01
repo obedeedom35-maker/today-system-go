@@ -51,10 +51,20 @@ function AuthPage() {
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
     setLoading(false);
     if (error) {
-      toast.error("E-mail ou senha inválidos.");
+      const msg = error.message.toLowerCase();
+      if (msg.includes("not confirmed")) {
+        toast.error("Seu e-mail ainda não foi confirmado. Cadastre-se novamente ou peça um novo link.");
+      } else if (msg.includes("invalid login")) {
+        toast.error("E-mail ou senha incorretos. Verifique e tente de novo.");
+      } else {
+        toast.error(error.message);
+      }
       return;
     }
     toast.success("Bem-vindo de volta!");
@@ -64,8 +74,9 @@ function AuthPage() {
   async function signUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
+    const cleanEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.signUp({
+      email: cleanEmail,
       password,
       options: {
         emailRedirectTo: window.location.origin,
@@ -77,15 +88,19 @@ function AuthPage() {
         },
       },
     });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast.error(
-        error.message.includes("already registered")
-          ? "Este e-mail já está cadastrado."
-          : "Não foi possível criar sua conta.",
+        error.message.toLowerCase().includes("already registered")
+          ? "Este e-mail já está cadastrado. Use a aba Entrar."
+          : error.message,
       );
       return;
     }
+    if (!data.session) {
+      await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+    }
+    setLoading(false);
     toast.success("Conta criada! Você já pode começar.");
     router.navigate({ to: "/" });
   }
@@ -109,7 +124,7 @@ function AuthPage() {
     <div className="grid min-h-screen bg-surface lg:grid-cols-2">
       <section className="bg-brand relative hidden flex-col justify-between p-12 text-primary-foreground lg:flex">
         <div className="flex items-center gap-3">
-          <img src="/brand_logo.jpg" alt="Odonto Progress" className="h-12 w-auto" />
+          <img src="/brand_logo.png" alt="Odonto Progress" className="h-12 w-auto" />
           <span className="font-display text-lg font-bold">ODONTO PROGRESS</span>
         </div>
         <div className="space-y-6">
@@ -128,12 +143,24 @@ function AuthPage() {
             </li>
           </ul>
         </div>
-        <p className="text-xs text-primary-foreground/70">Criado pelo aluno OBEDE-EDOM</p>
+        <p className="inline-block rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-4 py-2 font-display text-sm font-extrabold tracking-widest uppercase">
+          Criado pelo aluno OBEDE-EDOM
+        </p>
       </section>
 
       <section className="flex items-center justify-center p-6">
         <div className="card-premium w-full max-w-md p-8">
+          <img
+            src="/brand_logo.png"
+            alt="Odonto Progress"
+            className="mx-auto mb-4 h-20 w-auto lg:hidden"
+            width={1024}
+            height={1024}
+          />
           <h2 className="font-display text-2xl font-bold">Acesse sua conta</h2>
+          <p className="mt-2 inline-block rounded-full bg-secondary px-3 py-1 font-display text-[11px] font-extrabold tracking-widest text-secondary-foreground uppercase">
+            Criado pelo aluno OBEDE-EDOM
+          </p>
           <p className="mt-1 mb-6 text-sm text-muted-foreground">
             Acompanhe sua evolução acadêmica e clínica.
           </p>
