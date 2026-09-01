@@ -36,7 +36,9 @@ function Brand() {
       <img src="/brand_logo.png" alt="Odonto Progress" className="h-12 w-auto" />
       <div className="leading-tight">
         <p className="font-display text-base font-bold">Odonto Progress</p>
-        <p className="text-xs text-muted-foreground">Seu progresso, em um só lugar</p>
+        <p className="text-[10px] font-bold tracking-wide text-primary uppercase">
+          Criado pelo aluno OBEDE-EDOM
+        </p>
       </div>
     </Link>
   );
