@@ -33,7 +33,7 @@ const NAV = [
 function Brand() {
   return (
     <Link to="/" className="flex items-center gap-3">
-      <img src="/brand_logo.jpg" alt="Odonto Progress" className="h-12 w-auto" />
+      <img src="/brand_logo.png" alt="Odonto Progress" className="h-12 w-auto" />
       <div className="leading-tight">
         <p className="font-display text-base font-bold">Odonto Progress</p>
         <p className="text-xs text-muted-foreground">Seu progresso, em um só lugar</p>
