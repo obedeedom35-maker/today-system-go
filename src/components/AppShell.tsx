@@ -32,7 +32,7 @@ const NAV = [
 
 function Brand() {
   return (
-    <Link to="/" className="flex items-center gap-3">
+    <Link to="/painel" className="flex items-center gap-3">
       <img src="/brand_logo.png" alt="Odonto Progress" className="h-12 w-auto" />
       <div className="leading-tight">
         <p className="font-display text-base font-bold">Odonto Progress</p>
@@ -147,7 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 }
 
 const MOBILE_NAV = [
-  { to: "/", label: "Início", icon: LayoutDashboard },
+  { to: "/painel", label: "Início", icon: LayoutDashboard },
   { to: "/disciplinas", label: "Metas", icon: BookOpen },
   { to: "/estudos", label: "Estudos", icon: GraduationCap },
   { to: "/desempenho", label: "Desempenho", icon: BarChart3 },
