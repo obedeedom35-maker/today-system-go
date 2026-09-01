@@ -16,6 +16,7 @@ import { Route as DisciplinasRouteImport } from './routes/disciplinas'
 import { Route as EstudosRouteImport } from './routes/estudos'
 import { Route as IaRouteImport } from './routes/ia'
 import { Route as NotificacoesRouteImport } from './routes/notificacoes'
+import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PomodoroRouteImport } from './routes/pomodoro'
 import { Route as ProgressoRouteImport } from './routes/progresso'
 import { Route as SimuladoRouteImport } from './routes/simulado'
@@ -55,6 +56,11 @@ const NotificacoesRoute = NotificacoesRouteImport.update({
   path: '/notificacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelRoute = PainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PomodoroRoute = PomodoroRouteImport.update({
   id: '/pomodoro',
   path: '/pomodoro',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/estudos': typeof EstudosRoute
   '/ia': typeof IaRoute
   '/notificacoes': typeof NotificacoesRoute
+  '/painel': typeof PainelRoute
   '/pomodoro': typeof PomodoroRoute
   '/progresso': typeof ProgressoRoute
   '/simulado': typeof SimuladoRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/estudos': typeof EstudosRoute
   '/ia': typeof IaRoute
   '/notificacoes': typeof NotificacoesRoute
+  '/painel': typeof PainelRoute
   '/pomodoro': typeof PomodoroRoute
   '/progresso': typeof ProgressoRoute
   '/simulado': typeof SimuladoRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/estudos': typeof EstudosRoute
   '/ia': typeof IaRoute
   '/notificacoes': typeof NotificacoesRoute
+  '/painel': typeof PainelRoute
   '/pomodoro': typeof PomodoroRoute
   '/progresso': typeof ProgressoRoute
   '/simulado': typeof SimuladoRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/estudos'
     | '/ia'
     | '/notificacoes'
+    | '/painel'
     | '/pomodoro'
     | '/progresso'
     | '/simulado'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/estudos'
     | '/ia'
     | '/notificacoes'
+    | '/painel'
     | '/pomodoro'
     | '/progresso'
     | '/simulado'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/estudos'
     | '/ia'
     | '/notificacoes'
+    | '/painel'
     | '/pomodoro'
     | '/progresso'
     | '/simulado'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   EstudosRoute: typeof EstudosRoute
   IaRoute: typeof IaRoute
   NotificacoesRoute: typeof NotificacoesRoute
+  PainelRoute: typeof PainelRoute
   PomodoroRoute: typeof PomodoroRoute
   ProgressoRoute: typeof ProgressoRoute
   SimuladoRoute: typeof SimuladoRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotificacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel': {
+      id: '/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof PainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pomodoro': {
       id: '/pomodoro'
       path: '/pomodoro'
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   EstudosRoute: EstudosRoute,
   IaRoute: IaRoute,
   NotificacoesRoute: NotificacoesRoute,
+  PainelRoute: PainelRoute,
   PomodoroRoute: PomodoroRoute,
   ProgressoRoute: ProgressoRoute,
   SimuladoRoute: SimuladoRoute,

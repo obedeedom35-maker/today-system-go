@@ -45,7 +45,7 @@ function AuthPage() {
   const [period, setPeriod] = useState("6");
 
   useEffect(() => {
-    if (user) router.navigate({ to: "/" });
+    if (user) router.navigate({ to: "/painel" });
   }, [user, router]);
 
   async function signIn(e: React.FormEvent) {

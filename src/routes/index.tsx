@@ -1,389 +1,251 @@
-import React from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Bell, BookOpen, Sparkles, Target, TrendingUp, Award, CheckCircle2, Activity } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { AppShell } from "@/components/AppShell";
-import { HeroBanner } from "@/components/HeroBanner";
-import { ProgressBanners } from "@/components/ProgressBanners";
-import { Roadmap } from "@/components/Roadmap";
-import { NextStep } from "@/components/NextStep";
-import { Reveal, Stagger, StaggerItem, CountUp, MotionBar } from "@/components/motion";
-import { useProfile, useProgressData, useNotifications, useProgressSnapshots } from "@/lib/data";
-import { dailyMotivation, randomMessage, welcomeBackMessages } from "@/lib/motivation";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
+import {
+  Sparkles,
+  Target,
+  BookOpen,
+  GraduationCap,
+  BarChart3,
+  Clock,
+  Trophy,
+  MessageSquareText,
+  ArrowRight,
+  CheckCircle2,
+  Gift,
+  Users,
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-
+import { Reveal, Stagger, StaggerItem } from "@/components/motion";
+import videoAsset from "@/assets/apresentacao.mp4.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard | Odonto Progress" },
+      { title: "Odonto Progress — Sistema gratuito para alunos de Odontologia" },
       {
         name: "description",
         content:
-          "Acompanhe metas, procedimentos clínicos e estudos do seu período de Odontologia em um painel único.",
+          "Sistema gratuito feito por um aluno para alunos de Odontologia: metas clínicas, progresso do período, resumos, flashcards, simulados e Tutor IA.",
       },
-      { property: "og:title", content: "Odonto Progress — seu progresso na Odontologia" },
+      { property: "og:title", content: "Odonto Progress — gratuito para alunos de Odontologia" },
       {
         property: "og:description",
-        content: "Metas, procedimentos e estudos com IA para estudantes de Odontologia.",
+        content:
+          "Acompanhe suas metas clínicas e estude com IA: resumos premium, flashcards e simulados. 100% gratuito, feito por aluno para alunos.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: () => (
-    <AppShell>
-      <Dashboard />
-    </AppShell>
-  ),
+  component: LandingPage,
 });
 
-function Stat({
-  icon: Icon,
-  label,
-  value,
-  decimals = 0,
-  suffix = "",
-  extra,
-  hint,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-  decimals?: number;
-  suffix?: string;
-  extra?: string | undefined;
-  hint?: string | undefined;
-}) {
-  return (
-    <div className="card-premium p-5 transition-transform duration-300 hover:-translate-y-1">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-primary">
-          <Icon className="h-5 w-5" />
-        </div>
-        <p className="text-sm text-muted-foreground">{label}</p>
-      </div>
-      <p className="font-display mt-4 text-3xl font-extrabold">
-        <CountUp value={value} decimals={decimals} suffix={suffix} />
-        {extra}
-      </p>
-      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
-    </div>
-  );
-}
+const FEATURES = [
+  {
+    icon: Target,
+    title: "Metas clínicas organizadas",
+    text: "Cadastre disciplinas do período e acompanhe meta a meta quantos procedimentos faltam para concluir cada exigência.",
+  },
+  {
+    icon: BarChart3,
+    title: "Progresso em tempo real",
+    text: "Círculo de progresso, roadmap do período e desempenho com gráficos para você saber exatamente onde está.",
+  },
+  {
+    icon: BookOpen,
+    title: "Central de Estudos com IA",
+    text: "Envie seus PDFs e gere resumos em formato apostila premium, flashcards (Sei/Revisar) e simulados adaptativos corrigidos.",
+  },
+  {
+    icon: MessageSquareText,
+    title: "Tutor IA com seus materiais",
+    text: "Converse com seus próprios PDFs: o Tutor responde citando as fontes dos seus materiais.",
+  },
+  {
+    icon: Clock,
+    title: "Timer Pomodoro",
+    text: "Sessões de foco com pausas para manter o ritmo de estudo sem cansar.",
+  },
+  {
+    icon: Trophy,
+    title: "Gamificação",
+    text: "Conquistas, medalhas e sequências de estudo para manter a motivação ao longo do período.",
+  },
+];
 
-function Dashboard() {
-  const profile = useProfile();
-  const periodNumber = profile.data?.period_number ?? 6;
-  const progress = useProgressData(periodNumber);
-  const notifications = useNotifications();
-  const snapshots = useProgressSnapshots();
+const FREE_POINTS = [
+  "Sem mensalidade, sem cartão de crédito",
+  "Feito por aluno de Odontologia, para alunos",
+  "Resumos, flashcards, simulados e Tutor IA inclusos",
+  "Seus dados salvos com segurança",
+];
 
-  const subjects = progress.data?.subjects ?? [];
-  const overall = progress.data?.overall ?? 0;
-  const totalGoals = subjects.reduce((a, s) => a + s.goals.length, 0);
-  const done = subjects.reduce((a, s) => a + s.completedGoals, 0);
-  const procedures = subjects.reduce((a, s) => a + s.totalDone, 0);
-  const firstName = (profile.data?.full_name ?? "").split(" ")[0] || "estudante";
+function LandingPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
-  const historyData = snapshots.data?.map(s => ({
-    date: new Date(s.snapshot_date).toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' }),
-    progresso: s.percent
-  })) || [];
-
-  const chartData = historyData.length > 0 ? historyData : [
-    { date: "1 Ago", progresso: 10 },
-    { date: "8 Ago", progresso: 25 },
-    { date: "15 Ago", progresso: 45 },
-    { date: "Hoje", progresso: overall },
-  ];
-
-  const recentAchievements = notifications.data?.filter(n => n.kind === "sucesso").slice(0, 3) || [];
+  useEffect(() => {
+    if (!loading && user) router.navigate({ to: "/painel" });
+  }, [loading, user, router]);
 
   return (
-    <div className="space-y-8">
-      <Reveal>
-        <HeroBanner
-          name={firstName}
-          period={periodNumber}
-          course={profile.data?.course ?? "Odontologia"}
-          percent={overall}
-          message={randomMessage(welcomeBackMessages)}
-        />
-      </Reveal>
-
-      <Reveal delay={0.05}>
-        <ProgressBanners
-          items={[
-            {
-              label: "Visão Geral",
-              icon: Target,
-              percent: overall,
-              detail: "Progresso do período",
-              to: "/disciplinas",
-            },
-            {
-              label: "Metas",
-              icon: CheckCircle2,
-              percent: totalGoals > 0 ? Math.round((done / totalGoals) * 100) : 0,
-              detail: `${done} de ${totalGoals} concluídas`,
-              to: "/disciplinas",
-            },
-            {
-              label: "Clínica",
-              icon: TrendingUp,
-              percent: Math.min(100, procedures * 5),
-              detail: `${procedures} procedimentos feitos`,
-              to: "/disciplinas",
-            },
-          ]}
-        />
-      </Reveal>
-
-      <Reveal delay={0.15}>
-        {/* Gráfico de Evolução - Full width, premium */}
-        <div className="card-premium p-6 relative overflow-hidden">
-          {/* Background decoration blobs */}
-          <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-primary/8 blur-3xl pointer-events-none" />
-          <div className="absolute -left-8 bottom-0 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
-
-          {/* Header */}
-          <div className="flex flex-wrap items-start justify-between gap-4 mb-6 relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Activity className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="font-display text-lg font-bold">Evolução do Progresso</h2>
-                <p className="text-xs text-muted-foreground">Histórico de progresso do período</p>
-              </div>
-            </div>
-
-            {/* Stats chips */}
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="font-display text-3xl font-extrabold text-primary leading-none">
-                  {overall.toFixed(1)}%
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">progresso atual</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Mini stat pills */}
-          <div className="flex flex-wrap gap-2 mb-4 relative z-10">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1 text-xs font-semibold">
-              <CheckCircle2 className="h-3 w-3" /> {done}/{totalGoals} metas
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1 text-xs font-semibold">
-              <TrendingUp className="h-3 w-3" /> {procedures} procedimentos
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
-              <BookOpen className="h-3 w-3" /> {subjects.length} disciplinas
-            </span>
-          </div>
-
-          {/* Chart */}
-          <div className="relative z-10 h-[220px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
-                <defs>
-                  <linearGradient id="gradProgresso" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="hsl(var(--border))"
-                  strokeOpacity={0.5}
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="date"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <YAxis
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(v) => `${v}%`}
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                  domain={[0, 100]}
-                  width={38}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    borderRadius: '12px',
-                    border: '1px solid hsl(var(--border))',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-                    padding: '10px 14px',
-                  }}
-                  itemStyle={{ color: 'hsl(var(--primary))', fontWeight: 700 }}
-                  labelStyle={{ color: 'hsl(var(--foreground))', fontSize: '12px', marginBottom: '4px' }}
-                  formatter={(value: number) => [`${value.toFixed(1)}%`, 'Progresso']}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="progresso"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill="url(#gradProgresso)"
-                  dot={{ fill: 'hsl(var(--primary))', r: 3, strokeWidth: 0 }}
-                  activeDot={{ r: 6, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </Reveal>
-
-      <Reveal delay={0.2}>
-        <section className="grid gap-4 md:grid-cols-2">
-          {/* Conquistas Recentes */}
-          <div className="card-premium p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display text-lg font-bold">Conquistas Recentes</h2>
-              <Award className="h-5 w-5 text-primary" />
-            </div>
-            
-            {recentAchievements.length > 0 ? (
-              <div className="space-y-4 flex-1">
-                {recentAchievements.map(a => (
-                  <div key={a.id} className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/15 text-success">
-                      <CheckCircle2 className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{a.title}</p>
-                      <p className="text-xs text-muted-foreground">{a.message}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-muted-foreground mb-3">
-                  <Award className="h-6 w-6" />
-                </div>
-                <p className="text-sm font-medium">Nenhuma conquista ainda</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Complete metas para ganhar conquistas.
-                </p>
-              </div>
-            )}
-            
-            <Button variant="ghost" className="w-full mt-4 text-xs" asChild>
-              <Link to="/disciplinas">Ver todas as metas</Link>
-            </Button>
-          </div>
-        </section>
-      </Reveal>
-
-      <Reveal delay={0.2}>
-        <Roadmap percent={overall} />
-      </Reveal>
-
-      <Reveal delay={0.25}>
-        <NextStep subjects={subjects} />
-      </Reveal>
-
-      <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StaggerItem>
-          <Stat icon={BookOpen} label="Disciplinas" value={subjects.length} />
-        </StaggerItem>
-        <StaggerItem>
-          <Stat
-            icon={Target}
-            label="Metas concluídas"
-            value={done}
-            extra={`/${totalGoals}`}
-            hint={totalGoals === 0 ? "Cadastre suas metas nas disciplinas" : undefined}
-          />
-        </StaggerItem>
-        <StaggerItem>
-          <Stat icon={TrendingUp} label="Procedimentos" value={procedures} />
-        </StaggerItem>
-        <StaggerItem>
-          <Stat
-            icon={Bell}
-            label="Notificações"
-            value={(notifications.data ?? []).filter((n) => !n.is_read).length}
-          />
-        </StaggerItem>
-      </Stagger>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">Suas disciplinas</h2>
-          <Link to="/disciplinas" className="text-sm font-medium text-primary hover:underline">
-            Ver todas
-          </Link>
-        </div>
-
-        {progress.isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando disciplinas...</p>
-        ) : subjects.length === 0 ? (
-          <div className="card-premium p-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Nenhuma disciplina cadastrada para o {periodNumber}º período ainda.
-            </p>
-          </div>
-        ) : (
-          <Stagger className="grid gap-4 md:grid-cols-2">
-            {subjects.map((s) => (
-              <StaggerItem key={s.subject.id}>
-                <Link
-                  to="/disciplinas"
-                  className="card-premium block p-5 transition-transform duration-300 hover:-translate-y-1"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground">{s.subject.code}</p>
-                      <h3 className="font-display text-base font-bold">🦷 {s.subject.name}</h3>
-                    </div>
-                    {s.subject.is_clinic_integrated && (
-                      <span className="rounded-full bg-secondary px-2 py-1 text-[11px] font-semibold text-primary">
-                        Clínica
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>
-                      {s.completedGoals}/{s.goals.length} metas concluídas · {s.remaining} restantes
-                    </span>
-                    <span className="font-display font-bold text-primary">
-                      {s.percent.toFixed(0)}%
-                    </span>
-                  </div>
-                  <MotionBar percent={s.percent} className="mt-2" />
-                </Link>
-              </StaggerItem>
-            ))}
-          </Stagger>
-        )}
-      </section>
-
-      <Reveal>
-        <section className="bg-brand flex flex-wrap items-center justify-between gap-4 rounded-2xl p-6 text-primary-foreground shadow-[var(--shadow-glow)]">
+    <div className="min-h-screen bg-surface text-foreground">
+      {/* Header */}
+      <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <Sparkles className="h-6 w-6" />
-            <div>
-              <p className="font-display font-bold">Estude com Inteligência Artificial</p>
-              <p className="text-sm text-primary-foreground/80">
-                Envie seus materiais e gere resumos, flashcards e simulados corrigidos.
+            <img src="/brand_logo.png" alt="Odonto Progress" className="h-10 w-auto" />
+            <div className="leading-tight">
+              <p className="font-display text-sm font-bold">Odonto Progress</p>
+              <p className="text-[9px] font-bold tracking-wide text-primary uppercase">
+                Criado pelo aluno OBEDE-EDOM
               </p>
             </div>
           </div>
-          <Button asChild variant="secondary">
-            <Link to="/estudos">Ir para Meus Estudos</Link>
-          </Button>
-        </section>
-      </Reveal>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" asChild>
+              <Link to="/auth">Entrar</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/auth">Criar conta grátis</Link>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero */}
+      <section className="bg-brand relative overflow-hidden">
+        <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-primary-foreground/10 blur-3xl" />
+        <div className="absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-primary-foreground/5 blur-3xl" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2 lg:py-24">
+          <Reveal>
+            <div className="space-y-6 text-primary-foreground">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-4 py-1.5 text-xs font-bold tracking-widest uppercase">
+                <Gift className="h-4 w-4" /> 100% gratuito · Exclusivo para alunos
+              </span>
+              <h1 className="font-display text-4xl leading-tight font-extrabold sm:text-5xl">
+                Seu progresso na Odontologia, em um só lugar.
+              </h1>
+              <p className="max-w-lg text-base text-primary-foreground/85 sm:text-lg">
+                Metas clínicas, progresso do período, resumos premium, flashcards,
+                simulados corrigidos e um Tutor IA que conversa com os seus próprios
+                materiais. Tudo de graça, feito por quem vive a mesma rotina que você.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Button size="lg" variant="secondary" asChild>
+                  <Link to="/auth">
+                    Começar agora — é grátis <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+              <p className="text-xs font-bold tracking-widest text-primary-foreground/70 uppercase">
+                Criado pelo aluno OBEDE-EDOM
+              </p>
+            </div>
+          </Reveal>
+          <Reveal delay={0.15}>
+            <div className="card-premium overflow-hidden p-2 shadow-[var(--shadow-glow)]">
+              <video
+                src={videoAsset.url}
+                className="aspect-video w-full rounded-xl bg-black"
+                controls
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+              />
+              <p className="px-3 py-2 text-center text-xs text-muted-foreground">
+                Conheça o sistema e a faculdade no vídeo de apresentação
+              </p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Benefits */}
+      <section className="mx-auto max-w-6xl px-4 py-16 lg:py-24">
+        <Reveal>
+          <div className="mb-12 text-center">
+            <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-1.5 text-xs font-bold tracking-widest text-secondary-foreground uppercase">
+              <GraduationCap className="h-4 w-4" /> Tudo que você precisa no período
+            </span>
+            <h2 className="font-display mt-4 text-3xl font-extrabold sm:text-4xl">
+              O que o sistema faz por você
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
+              Uma plataforma completa para organizar a faculdade de Odontologia — da clínica
+              integrada até a véspera da prova.
+            </p>
+          </div>
+        </Reveal>
+
+        <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((f) => (
+            <StaggerItem key={f.title}>
+              <div className="card-premium h-full p-6 transition-transform duration-300 hover:-translate-y-1">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-primary">
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <h3 className="font-display mt-4 text-base font-bold">{f.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{f.text}</p>
+              </div>
+            </StaggerItem>
+          ))}
+        </Stagger>
+      </section>
+
+      {/* Free for students */}
+      <section className="mx-auto max-w-6xl px-4 pb-20">
+        <Reveal>
+          <div className="bg-brand grid items-center gap-8 rounded-3xl p-8 text-primary-foreground shadow-[var(--shadow-glow)] lg:grid-cols-2 lg:p-12">
+            <div className="space-y-5">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-4 py-1.5 text-xs font-bold tracking-widest uppercase">
+                <Users className="h-4 w-4" /> De aluno para aluno
+              </span>
+              <h2 className="font-display text-3xl font-extrabold">
+                Gratuito. Hoje, amanhã e sempre.
+              </h2>
+              <p className="text-sm text-primary-foreground/85 sm:text-base">
+                O Odonto Progress foi criado pelo aluno OBEDE-EDOM para ajudar a turma a
+                acompanhar metas clínicas e estudar melhor. Não existe plano pago: todo
+                recurso está liberado para todos os alunos.
+              </p>
+              <Button size="lg" variant="secondary" asChild>
+                <Link to="/auth">
+                  Criar minha conta grátis <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <ul className="space-y-3">
+              {FREE_POINTS.map((p) => (
+                <li
+                  key={p}
+                  className="flex items-center gap-3 rounded-xl bg-primary-foreground/10 px-4 py-3 text-sm font-medium"
+                >
+                  <CheckCircle2 className="h-5 w-5 shrink-0" /> {p}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-card">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-8 text-center">
+          <img src="/brand_logo.png" alt="Odonto Progress" className="h-12 w-auto" />
+          <p className="font-display text-sm font-bold">Odonto Progress</p>
+          <p className="rounded-full bg-secondary px-4 py-1.5 font-display text-[11px] font-extrabold tracking-widest text-secondary-foreground uppercase">
+            Criado pelo aluno OBEDE-EDOM · Gratuito para alunos
+          </p>
+          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+            <Sparkles className="h-3.5 w-3.5" />
+            Resumos, flashcards e simulados com Inteligência Artificial
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
-
