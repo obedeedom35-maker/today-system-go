@@ -74,8 +74,9 @@ function AuthPage() {
   async function signUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
+    const cleanEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.signUp({
+      email: cleanEmail,
       password,
       options: {
         emailRedirectTo: window.location.origin,
@@ -87,15 +88,19 @@ function AuthPage() {
         },
       },
     });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast.error(
-        error.message.includes("already registered")
-          ? "Este e-mail já está cadastrado."
-          : "Não foi possível criar sua conta.",
+        error.message.toLowerCase().includes("already registered")
+          ? "Este e-mail já está cadastrado. Use a aba Entrar."
+          : error.message,
       );
       return;
     }
+    if (!data.session) {
+      await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+    }
+    setLoading(false);
     toast.success("Conta criada! Você já pode começar.");
     router.navigate({ to: "/" });
   }
