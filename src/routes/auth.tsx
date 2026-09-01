@@ -51,10 +51,20 @@ function AuthPage() {
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
     setLoading(false);
     if (error) {
-      toast.error("E-mail ou senha inválidos.");
+      const msg = error.message.toLowerCase();
+      if (msg.includes("not confirmed")) {
+        toast.error("Seu e-mail ainda não foi confirmado. Cadastre-se novamente ou peça um novo link.");
+      } else if (msg.includes("invalid login")) {
+        toast.error("E-mail ou senha incorretos. Verifique e tente de novo.");
+      } else {
+        toast.error(error.message);
+      }
       return;
     }
     toast.success("Bem-vindo de volta!");
