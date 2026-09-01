@@ -143,12 +143,24 @@ function AuthPage() {
             </li>
           </ul>
         </div>
-        <p className="text-xs text-primary-foreground/70">Criado pelo aluno OBEDE-EDOM</p>
+        <p className="inline-block rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-4 py-2 font-display text-sm font-extrabold tracking-widest uppercase">
+          Criado pelo aluno OBEDE-EDOM
+        </p>
       </section>
 
       <section className="flex items-center justify-center p-6">
         <div className="card-premium w-full max-w-md p-8">
+          <img
+            src="/brand_logo.png"
+            alt="Odonto Progress"
+            className="mx-auto mb-4 h-20 w-auto lg:hidden"
+            width={1024}
+            height={1024}
+          />
           <h2 className="font-display text-2xl font-bold">Acesse sua conta</h2>
+          <p className="mt-2 inline-block rounded-full bg-secondary px-3 py-1 font-display text-[11px] font-extrabold tracking-widest text-secondary-foreground uppercase">
+            Criado pelo aluno OBEDE-EDOM
+          </p>
           <p className="mt-1 mb-6 text-sm text-muted-foreground">
             Acompanhe sua evolução acadêmica e clínica.
           </p>
