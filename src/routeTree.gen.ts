@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DesempenhoRouteImport } from './routes/desempenho'
 import { Route as DisciplinasRouteImport } from './routes/disciplinas'
@@ -20,6 +21,11 @@ import { Route as PomodoroRouteImport } from './routes/pomodoro'
 import { Route as ProgressoRouteImport } from './routes/progresso'
 import { Route as SimuladoRouteImport } from './routes/simulado'
 
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -72,6 +78,7 @@ const SimuladoRoute = SimuladoRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/desempenho': typeof DesempenhoRoute
   '/disciplinas': typeof DisciplinasRoute
@@ -84,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/simulado': typeof SimuladoRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/desempenho': typeof DesempenhoRoute
   '/disciplinas': typeof DisciplinasRoute
@@ -97,6 +105,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/desempenho': typeof DesempenhoRoute
   '/disciplinas': typeof DisciplinasRoute
@@ -111,6 +120,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/auth'
     | '/desempenho'
     | '/disciplinas'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
     | '/simulado'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/auth'
     | '/desempenho'
     | '/disciplinas'
@@ -135,6 +146,7 @@ export interface FileRouteTypes {
     | '/simulado'
   id:
     | '__root__'
+    | '/'
     | '/auth'
     | '/desempenho'
     | '/disciplinas'
@@ -148,6 +160,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DesempenhoRoute: typeof DesempenhoRoute
   DisciplinasRoute: typeof DisciplinasRoute
@@ -162,6 +175,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -236,6 +256,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DesempenhoRoute: DesempenhoRoute,
   DisciplinasRoute: DisciplinasRoute,
