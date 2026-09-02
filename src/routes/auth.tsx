@@ -68,7 +68,7 @@ function AuthPage() {
       return;
     }
     toast.success("Bem-vindo de volta!");
-    router.navigate({ to: "/" });
+    router.navigate({ to: "/painel" });
   }
 
   async function signUp(e: React.FormEvent) {
@@ -102,7 +102,7 @@ function AuthPage() {
     }
     setLoading(false);
     toast.success("Conta criada! Você já pode começar.");
-    router.navigate({ to: "/" });
+    router.navigate({ to: "/painel" });
   }
 
   async function resetPassword() {

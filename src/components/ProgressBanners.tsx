@@ -8,7 +8,7 @@ export type ProgressBannerData = {
   icon: LucideIcon;
   percent: number;
   detail: string;
-  to: "/" | "/disciplinas" | "/progresso" | "/estudos" | "/simulado" | "/ia" | "/desempenho";
+  to: "/painel" | "/disciplinas" | "/progresso" | "/estudos" | "/simulado" | "/ia" | "/desempenho";
 };
 
 function Confetti() {
