@@ -18,6 +18,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion";
 import videoAsset from "@/assets/apresentacao.mp4.asset.json";
+import printInicio from "@/assets/app-print-inicio.jpg.asset.json";
+import printObjetivo from "@/assets/app-print-objetivo.jpg.asset.json";
+import printDisciplinas from "@/assets/app-print-disciplinas.jpg.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -164,8 +167,45 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Benefits */}
+      {/* Inside the app */}
       <section className="mx-auto max-w-6xl px-4 py-16 lg:py-24">
+        <Reveal>
+          <div className="mb-12 text-center">
+            <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-1.5 text-xs font-bold tracking-widest text-secondary-foreground uppercase">
+              <Target className="h-4 w-4" /> Por dentro da plataforma
+            </span>
+            <h2 className="font-display mt-4 text-3xl font-extrabold sm:text-4xl">
+              Veja como é usar no dia a dia
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
+              Telas reais do sistema rodando no celular: progresso do período, próximo
+              objetivo sugerido e suas disciplinas com metas.
+            </p>
+          </div>
+        </Reveal>
+
+        <Stagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { src: printInicio.url, alt: "Tela inicial do Odonto Progress com progresso do período" },
+            { src: printObjetivo.url, alt: "Seu próximo objetivo e resumo de metas no Odonto Progress" },
+            { src: printDisciplinas.url, alt: "Lista de disciplinas com progresso no Odonto Progress" },
+          ].map((shot) => (
+            <StaggerItem key={shot.src}>
+              <div className="card-premium mx-auto max-w-[300px] overflow-hidden p-2 shadow-[var(--shadow-glow)] transition-transform duration-300 hover:-translate-y-1">
+                <img
+                  src={shot.src}
+                  alt={shot.alt}
+                  loading="lazy"
+                  className="w-full rounded-xl"
+                />
+              </div>
+            </StaggerItem>
+          ))}
+        </Stagger>
+      </section>
+
+      {/* Benefits */}
+      <section className="mx-auto max-w-6xl px-4 pb-16 lg:pb-24">
         <Reveal>
           <div className="mb-12 text-center">
             <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-1.5 text-xs font-bold tracking-widest text-secondary-foreground uppercase">
