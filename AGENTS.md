@@ -11,3 +11,4 @@
 
 - Keep dashboard motivational copy and its audience selector in `src/lib/motivation.ts`; use the loaded profile's period without a fallback so unresolved profiles never receive cohort-specific messages.
 - Test audience-selection rules with `bun test` beside the motivation module so cohort targeting stays independent of presentation.
+- Render dashboard motivation in `MotivationBanner` with themed celebration tokens and reduced-motion support so decoration stays separate from audience rules.
