@@ -31,7 +31,14 @@ import {
 export const Route = createFileRoute('/ia')({
   component: TutorIARoute,
   head: () => ({
-    meta: [{ title: 'Tutor IA | Odonto Progress' }],
+    meta: [
+      { title: 'Tutor IA | Odonto Progress' },
+      { name: 'description', content: 'Tire dúvidas de Odontologia e converse com seus materiais de estudo no Tutor IA.' },
+      { property: 'og:title', content: 'Tutor IA | Odonto Progress' },
+      { property: 'og:description', content: 'Pergunte aos seus materiais e aprofunde seu aprendizado em Odontologia.' },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+    ],
   }),
 });
 

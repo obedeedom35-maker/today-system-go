@@ -1,5 +1,16 @@
 import type { GoalProgress } from "./progress";
 
+export function cycleClosingMessage(periodNumber: number | null | undefined) {
+  if (periodNumber !== 6) return null;
+  return "Estamos na reta final de mais um ciclo! Falta pouco para o 7º período. Espero que todos tenham tido um excelente desempenho e aproveitado cada oportunidade de aprendizado. Valorize sua evolução: cada aula, cada desafio e cada paciente atendido contribuíram para sua formação. Continue firme — ainda há tempo para aprender, superar desafios e encerrar esta etapa com orgulho!";
+}
+
+export const cycleMotivationalMessages = [
+  "Falta pouco! Mantenha o foco e dê o seu melhor até o último dia.",
+  "Reconheça o quanto você evoluiu e leve esse aprendizado para o próximo ciclo.",
+  "Seu esforço de hoje fortalece o profissional que você está se tornando.",
+];
+
 function pick(list: string[], seed = Date.now()): string {
   return list[Math.floor((seed / 1000 + Math.random() * list.length) % list.length)] ?? list[0] ?? "";
 }

@@ -7,6 +7,8 @@ import { Play, Pause, SkipForward, RotateCcw, Coffee, Brain } from "lucide-react
 export const Route = createFileRoute("/pomodoro")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Pomodoro | Odonto Progress" },
       {
         name: "description",

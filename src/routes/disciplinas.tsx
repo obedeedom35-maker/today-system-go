@@ -18,6 +18,8 @@ import {
 export const Route = createFileRoute("/disciplinas")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Disciplinas | Odonto Progress" },
       {
         name: "description",

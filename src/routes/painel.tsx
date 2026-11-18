@@ -9,7 +9,7 @@ import { Roadmap } from "@/components/Roadmap";
 import { NextStep } from "@/components/NextStep";
 import { Reveal, Stagger, StaggerItem, CountUp, MotionBar } from "@/components/motion";
 import { useProfile, useProgressData, useNotifications, useProgressSnapshots } from "@/lib/data";
-import { dailyMotivation, randomMessage, welcomeBackMessages } from "@/lib/motivation";
+import { cycleClosingMessage, cycleMotivationalMessages, randomMessage, welcomeBackMessages } from "@/lib/motivation";
 import { Button } from "@/components/ui/button";
 
 
@@ -17,6 +17,8 @@ export const Route = createFileRoute("/painel")({
   head: () => ({
     meta: [
       { title: "Dashboard | Odonto Progress" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         name: "description",
         content:
@@ -83,6 +85,7 @@ function Dashboard() {
   const done = subjects.reduce((a, s) => a + s.completedGoals, 0);
   const procedures = subjects.reduce((a, s) => a + s.totalDone, 0);
   const firstName = (profile.data?.full_name ?? "").split(" ")[0] || "estudante";
+  const closingMessage = cycleClosingMessage(profile.data?.period_number);
 
   const historyData = snapshots.data?.map(s => ({
     date: new Date(s.snapshot_date).toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' }),
@@ -108,6 +111,27 @@ function Dashboard() {
           percent={overall}
           message={randomMessage(welcomeBackMessages)}
         />
+      </Reveal>
+
+      <Reveal delay={0.05}>
+        <section aria-labelledby="cycle-motivation-title" className="space-y-5 border-y border-border py-6">
+          <div className="flex items-center gap-3">
+            <Award className="h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
+            <h2 id="cycle-motivation-title" className="font-display text-xl font-bold">
+              {closingMessage ? "Reta final do 6º período" : "Sua evolução merece ser reconhecida"}
+            </h2>
+          </div>
+          {closingMessage && <p className="max-w-4xl text-base leading-relaxed text-muted-foreground">{closingMessage}</p>}
+          <ul className="grid gap-4 md:grid-cols-3">
+            {cycleMotivationalMessages.map((message) => (
+              <li key={message} className="flex items-start gap-2 text-sm leading-relaxed">
+                <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                <span>{message}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs font-semibold text-primary">Uma mensagem do aluno OBEDE-EDOM</p>
+        </section>
       </Reveal>
 
       <Reveal delay={0.05}>

@@ -1,0 +1,4 @@
+- [x] Present motivational text and receive approval.
+- [x] Add approved messages to the dashboard with period-specific targeting.
+- [x] Verify targeting tests and the signed-in desktop/mobile panel.
+- [x] Ensure content-page metadata is complete and save changes.

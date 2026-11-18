@@ -25,6 +25,16 @@ import {
 } from "lucide-react"
 
 export const Route = createFileRoute('/simulado')({
+  head: () => ({
+    meta: [
+      { title: 'Simulados | Odonto Progress' },
+      { name: 'description', content: 'Pratique Odontologia com simulados gerados a partir dos seus materiais de estudo.' },
+      { property: 'og:title', content: 'Simulados | Odonto Progress' },
+      { property: 'og:description', content: 'Avalie seu aprendizado com questões, correções e resultados dos seus simulados.' },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+    ],
+  }),
   component: SimuladoPage,
 })
 

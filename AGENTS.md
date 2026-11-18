@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep dashboard motivational copy and its audience selector in `src/lib/motivation.ts`; use the loaded profile's period without a fallback so unresolved profiles never receive cohort-specific messages.
+- Test audience-selection rules with `bun test` beside the motivation module so cohort targeting stays independent of presentation.

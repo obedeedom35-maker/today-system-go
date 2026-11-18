@@ -8,6 +8,8 @@ import { simulationMessage } from "@/lib/motivation";
 export const Route = createFileRoute("/desempenho")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Meu Desempenho | Odonto Progress" },
       {
         name: "description",

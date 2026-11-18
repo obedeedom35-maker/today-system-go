@@ -11,6 +11,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 export const Route = createFileRoute("/progresso")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Meu Progresso | Odonto Progress" },
       {
         name: "description",
